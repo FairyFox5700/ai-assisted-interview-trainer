@@ -8,6 +8,7 @@ import {
   loadSession,
   clearSession
 } from './state.js';
+import { assignmentPlaybooks, promptsForAssignment } from './content.js';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -16,34 +17,8 @@ let session;
 let apiReady = false;
 let timerHandle;
 let noteSaveHandle;
-
-const promptTemplates = [
-  {
-    title: 'Orient in the codebase',
-    phase: 'Inspect',
-    body: 'Inspect the relevant code path for the current requirement. Explain the files involved, identify assumptions, and propose a minimal plan. Do not edit code yet.'
-  },
-  {
-    title: 'Bounded implementation',
-    phase: 'Build',
-    body: 'Implement only [bounded behavior]. Preserve [public contract]. Do not modify unrelated files or add packages. Return the proposed diff, assumptions, and focused tests.'
-  },
-  {
-    title: 'Test strategy review',
-    phase: 'Verify',
-    body: 'Review these acceptance criteria and proposed tests. Identify missing boundaries, tests that could pass for the wrong reason, and the smallest useful additional test. Do not implement production code.'
-  },
-  {
-    title: 'Adversarial diff review',
-    phase: 'Review',
-    body: 'Review this diff for correctness, regression risk, security, unnecessary complexity, and repository fit. Cite the exact risky line or assumption. Do not change files.'
-  },
-  {
-    title: 'Interviewer update',
-    phase: 'Communicate',
-    body: 'Turn these notes into a concise spoken update: what I learned, what I am changing, how I will verify it, and one trade-off. Keep it under 45 seconds.'
-  }
-];
+let selectedAssignmentType = 'bug-fix';
+let renderedAssignmentType;
 
 async function bootstrap() {
   bindStaticEvents();
@@ -113,6 +88,14 @@ function bindStaticEvents() {
     session = { ...session, promptHistory: [...session.promptHistory, { at: Date.now(), text: $('#prompt-editor').value }], events: [...session.events, event('prompt_copied', 'AI prompt copied')] };
     persist('Prompt recorded');
     renderActivity();
+  });
+  $('#assignment-type').addEventListener('change', (event) => {
+    selectedAssignmentType = event.target.value;
+    renderPrompts();
+  });
+  $('#copy-playbook').addEventListener('click', async () => {
+    const playbook = assignmentPlaybooks.find(item => item.id === selectedAssignmentType);
+    await copyText(formatPlaybook(playbook));
   });
   $('#notes').addEventListener('input', (e) => {
     session = { ...session, notes: e.target.value };
@@ -191,14 +174,31 @@ function renderCurrentStage() {
 }
 
 function renderPrompts() {
-  $('#prompt-templates').innerHTML = promptTemplates.map((template, index) => `
-    <button class="template-button ${index === 0 ? 'active' : ''}" data-template="${index}">
+  const playbook = assignmentPlaybooks.find(item => item.id === selectedAssignmentType) ?? assignmentPlaybooks[0];
+  const prompts = promptsForAssignment(playbook.id);
+  const assignmentChanged = renderedAssignmentType !== playbook.id;
+  renderedAssignmentType = playbook.id;
+
+  $('#assignment-type').innerHTML = assignmentPlaybooks.map(item =>
+    `<option value="${item.id}" ${item.id === playbook.id ? 'selected' : ''}>${escapeHtml(item.label)}</option>`
+  ).join('');
+  $('#playbook-title').textContent = playbook.label;
+  $('#playbook-summary').textContent = playbook.summary;
+  $('#reasoning-outline').innerHTML = playbook.reasoningOutline.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  $('#action-plan').innerHTML = playbook.actions.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  $('#evidence-list').innerHTML = playbook.evidence.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  $('#pitfall-list').innerHTML = playbook.pitfalls.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  $('#spoken-update').textContent = playbook.spokenUpdate;
+
+  $('#prompt-templates').innerHTML = prompts.map((template, index) => `
+    <button class="template-button ${index === 0 ? 'active' : ''}" data-template="${template.id}">
       <strong>${escapeHtml(template.title)}</strong><span>${escapeHtml(template.phase)}</span>
     </button>`).join('');
+  if (assignmentChanged || !$('#prompt-editor').value) $('#prompt-editor').value = prompts[0].body;
   $$('.template-button').forEach(button => button.addEventListener('click', () => {
     $$('.template-button').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
-    $('#prompt-editor').value = promptTemplates[Number(button.dataset.template)].body;
+    $('#prompt-editor').value = prompts.find(template => template.id === button.dataset.template).body;
   }));
 }
 
@@ -307,6 +307,12 @@ function persist(label, addEvent = false) {
   saveSession(session);
   $('#save-state').textContent = label;
   setTimeout(() => { if ($('#save-state').textContent === label) $('#save-state').textContent = 'Saved locally'; }, 1200);
+}
+
+function formatPlaybook(playbook) {
+  const numbered = items => items.map((item, index) => `${index + 1}. ${item}`).join('\n');
+  const bullets = items => items.map(item => `- ${item}`).join('\n');
+  return `${playbook.label}\n\nReasoning outline\n${numbered(playbook.reasoningOutline)}\n\nMy actions\n${numbered(playbook.actions)}\n\nEvidence to produce\n${bullets(playbook.evidence)}\n\nCommon traps\n${bullets(playbook.pitfalls)}\n\nInterviewer update\n${playbook.spokenUpdate}`;
 }
 
 function event(type, label) { return { type, label, at: Date.now() }; }

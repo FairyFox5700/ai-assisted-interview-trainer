@@ -94,11 +94,36 @@ const desktop = await evaluate(`(() => ({
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
 }))()`);
 if (desktop.stage !== 'Bug fix' || !desktop.apiBody.includes('"total": 46') || desktop.overflow !== 0) throw new Error(`Desktop flow failed: ${JSON.stringify(desktop)}`);
+await evaluate(`(() => {
+  document.querySelector('[data-tab="prompts"]').click();
+  const select = document.querySelector('#assignment-type');
+  select.value = 'performance';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+})()`);
+await waitFor(() => evaluate("document.querySelector('#playbook-title').textContent === 'Performance optimization'"));
+const promptLab = await evaluate(`(() => ({
+  playbook: document.querySelector('#playbook-title').textContent,
+  assignmentCount: document.querySelector('#assignment-type').options.length,
+  templateCount: document.querySelectorAll('#prompt-templates .template-button').length,
+  actionCount: document.querySelectorAll('#action-plan li').length,
+  reasoningCount: document.querySelectorAll('#reasoning-outline li').length,
+  prompt: document.querySelector('#prompt-editor').value,
+  overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+}))()`);
+if (promptLab.assignmentCount < 12 || promptLab.templateCount !== 3 || promptLab.actionCount < 6 || promptLab.reasoningCount < 3 || !promptLab.prompt.includes('[workload]') || promptLab.overflow !== 0) throw new Error(`Prompt lab failed: ${JSON.stringify(promptLab)}`);
+await waitFor(() => evaluate("getComputedStyle(document.querySelector('#toast')).opacity === '0'"), 3000);
 await screenshot(desktopShot);
 
 await send('Emulation.setDeviceMetricsOverride', { width: 320, height: 760, deviceScaleFactor: 1, mobile: true });
 await send('Page.reload', { ignoreCache: true });
 await waitFor(() => evaluate("document.querySelector('#environment-badge')?.textContent.includes('API ready')"));
+await evaluate(`(() => {
+  document.querySelector('[data-tab="prompts"]').click();
+  const select = document.querySelector('#assignment-type');
+  select.value = 'frontend-ui';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+})()`);
+await waitFor(() => evaluate("document.querySelector('#playbook-title').textContent === 'Frontend or UI task'"));
 const mobile = await evaluate(`(() => {
   const visibleButtons = [...document.querySelectorAll('button')].filter(b => {
     const s = getComputedStyle(b); const r = b.getBoundingClientRect();
@@ -107,16 +132,19 @@ const mobile = await evaluate(`(() => {
   return {
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     title: document.querySelector('#stage-title')?.textContent,
+    playbook: document.querySelector('#playbook-title')?.textContent,
+    assignmentCount: document.querySelector('#assignment-type')?.options.length,
+    templateCount: document.querySelectorAll('#prompt-templates .template-button').length,
     visibleButtons,
     timerVisible: document.querySelector('#timer').getBoundingClientRect().width > 0
   };
 })()`);
 const undersized = mobile.visibleButtons.filter(button => button.height < 44 || button.width < 44);
-if (mobile.overflow !== 0 || !mobile.timerVisible || undersized.length) throw new Error(`Mobile assertions failed: ${JSON.stringify({ mobile, undersized })}`);
+if (mobile.overflow !== 0 || !mobile.timerVisible || mobile.playbook !== 'Frontend or UI task' || mobile.assignmentCount < 12 || mobile.templateCount !== 3 || undersized.length) throw new Error(`Mobile assertions failed: ${JSON.stringify({ mobile, undersized })}`);
 await screenshot(mobileShot);
 
 if (consoleErrors.length) throw new Error(`Browser errors: ${consoleErrors.join(' | ')}; failed requests: ${failedRequests.join(', ')}`);
 if (externalRequests.length) throw new Error(`Unexpected external requests: ${externalRequests.join(', ')}`);
 
-console.log(JSON.stringify({ initial, desktop, mobile: { overflow: mobile.overflow, title: mobile.title, buttonCount: mobile.visibleButtons.length }, screenshots: [desktopShot, mobileShot] }, null, 2));
+console.log(JSON.stringify({ initial, desktop, promptLab, mobile: { overflow: mobile.overflow, title: mobile.title, playbook: mobile.playbook, assignmentCount: mobile.assignmentCount, templateCount: mobile.templateCount, buttonCount: mobile.visibleButtons.length }, screenshots: [desktopShot, mobileShot] }, null, 2));
 ws.close();

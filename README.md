@@ -13,7 +13,8 @@ The application runs a structured 60-minute simulation in which you inspect an u
 - **Real API lab** in the browser; requests pass through the running HTTP pipeline.
 - **Deterministic checkpoints** that run predefined probes against the C# domain implementation.
 - **Practice starter state** created in an isolated Git worktree so `main` remains green.
-- **15 .NET tests** plus browser-state tests and JavaScript syntax checks.
+- **39 bounded AI prompt templates** across 13 assignment types, each with a concise reasoning outline, step-by-step candidate actions, evidence requirements, traps, and a spoken interviewer update.
+- **15 .NET tests** plus eight browser-state/content tests and JavaScript syntax checks.
 - **GitHub Actions CI**, Dependabot configuration, security policy, and architecture documentation.
 
 No account, cloud service, AI key, analytics, remote font, database, or Docker installation is required.
@@ -22,7 +23,7 @@ No account, cloud service, AI key, analytics, remote font, database, or Docker i
 
 1. **Brief** — current objective, checkable requirements, focused commands, and checkpoint evidence.
 2. **API lab** — edit and send a real `POST /api/v1/quotes` request.
-3. **Prompt lab** — reusable prompts for orientation, bounded implementation, test review, adversarial diff review, and concise interviewer updates.
+3. **Assignment playbooks** — choose among unfamiliar codebases, bugs, features, refactoring, testing, API integration, performance, security, code review, data migration, frontend/UI, async/concurrency, and CLI automation. Each includes orient, execute, and verify prompts.
 4. **Debrief** — factual run summary, checkpoint count, and a seven-dimension self-assessment.
 
 Only the current stage is actionable. Completing every visible requirement unlocks the next stage. The timer is timestamp-derived and survives refreshes.

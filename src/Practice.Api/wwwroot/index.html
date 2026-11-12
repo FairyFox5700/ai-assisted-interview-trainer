@@ -103,13 +103,33 @@
         </div>
       </section>
 
-      <section id="panel-prompts" class="tab-panel" role="tabpanel" hidden>
-        <div class="section-heading"><div><span class="eyebrow">Candidate-controlled AI</span><h1>Prompt lab</h1><p class="lead">Compose bounded prompts that preserve ownership and make verification explicit.</p></div><button id="copy-prompt" class="button primary">Copy prompt</button></div>
+      <section id="panel-prompts" class="tab-panel prompt-panel" role="tabpanel" hidden>
+        <div class="section-heading"><div><span class="eyebrow">Candidate-controlled AI</span><h1>Assignment playbooks</h1><p class="lead">Choose the task type, follow a concise reasoning outline and action plan, then use bounded prompts for orient, execute, and verify phases.</p></div><button id="copy-prompt" class="button primary">Copy selected prompt</button></div>
+
+        <div class="assignment-picker">
+          <label for="assignment-type">Assignment type</label>
+          <select id="assignment-type"></select>
+        </div>
+
+        <article class="playbook" aria-labelledby="playbook-title">
+          <div class="playbook-header">
+            <div><span class="eyebrow">My approach</span><h2 id="playbook-title"></h2><p id="playbook-summary"></p></div>
+            <button id="copy-playbook" class="button">Copy action plan</button>
+          </div>
+          <div class="playbook-grid">
+            <section><h3>Reasoning outline</h3><p class="section-note">Concise checkpoints to say aloud—not hidden chain-of-thought.</p><ol id="reasoning-outline"></ol></section>
+            <section><h3>My actions</h3><ol id="action-plan" class="action-plan"></ol></section>
+            <section class="proof-risks"><h3>Proof and risks</h3><div><strong>Evidence to produce</strong><ul id="evidence-list"></ul></div><div><strong>Common traps</strong><ul id="pitfall-list"></ul></div></section>
+          </div>
+          <div class="spoken-update"><span class="eyebrow">45-second interviewer update</span><p id="spoken-update"></p></div>
+        </article>
+
+        <div class="prompt-section-heading"><div><h2>Prompt templates</h2><p>Each assignment includes an orient, execute, and verify prompt. Replace every <code>[placeholder]</code> before use.</p></div></div>
         <div class="prompt-layout">
           <div id="prompt-templates" class="template-list" aria-label="Prompt templates"></div>
           <div>
             <label for="prompt-editor">Editable prompt</label>
-            <textarea id="prompt-editor" class="prompt-editor">Inspect the relevant code path for the current requirement. Explain the files involved, identify assumptions, and propose a minimal plan. Do not edit code yet.</textarea>
+            <textarea id="prompt-editor" class="prompt-editor"></textarea>
             <div class="prompt-guardrails">
               <strong>Before sending</strong>
               <ul><li>Name the exact scope.</li><li>State what must not change.</li><li>Ask for tests and risks.</li><li>Review every generated line.</li></ul>
