@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+.vs/
+.idea/
+.vscode/
+TestResults/
+coverage/
+*.user
+*.suo
+.DS_Store
+interview-run-summary.json
+ai-interview-practice/

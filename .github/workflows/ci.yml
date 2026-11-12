@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '26'
+      - run: dotnet restore
+      - run: dotnet build --no-restore --configuration Release
+      - run: dotnet test --no-build --configuration Release
+      - run: npm test
+      - run: npm run check
+      - name: Verify exercise starter stays intentionally red
+        shell: bash
+        run: |
+          cp exercise/starter/QuoteCalculator.cs src/Practice.Domain/QuoteCalculator.cs
+          dotnet build --configuration Release
+          if dotnet test tests/Practice.Domain.Tests/Practice.Domain.Tests.csproj --configuration Release; then
+            echo 'Starter unexpectedly passed all behavior tests.' >&2
+            exit 1
+          fi

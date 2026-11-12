@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="A local, deterministic AI-assisted coding interview trainer with a real C#/.NET practice API.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 fill=%22%230f6b4f%22/><text x=%226%22 y=%2222%22 font-size=%2215%22 fill=%22white%22>IF</text></svg>">
+  <title>Interview Flight Deck</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <div id="app" class="app-shell" data-session-status="ready">
+    <header class="topbar">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true">IF</span>
+        <div>
+          <strong>Interview Flight Deck</strong>
+          <span id="scenario-subtitle">Loading scenario…</span>
+        </div>
+      </div>
+      <div class="topbar-status" aria-live="polite">
+        <span id="save-state" class="quiet-status">Not started</span>
+        <span id="environment-badge" class="status-pill checking">Checking API</span>
+        <span id="timer" class="timer" aria-label="Time remaining">60:00</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="start-button" class="button primary">Start simulation</button>
+        <button id="end-button" class="button" disabled>End run</button>
+        <button id="reset-button" class="button subtle">Reset</button>
+      </div>
+    </header>
+
+    <aside class="stage-rail" aria-label="Interview stages">
+      <div class="rail-heading">
+        <span>Run outline</span>
+        <span id="stage-progress">0 / 5</span>
+      </div>
+      <ol id="stage-list" class="stage-list"></ol>
+      <div class="rail-footer">
+        <span class="eyebrow">AI policy</span>
+        <strong>Candidate-controlled</strong>
+        <p>Use AI for bounded tasks. You remain responsible for every accepted change.</p>
+      </div>
+    </aside>
+
+    <main id="workspace" class="workspace" tabindex="-1">
+      <nav class="workspace-tabs" aria-label="Workspace" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="brief">Brief</button>
+        <button role="tab" aria-selected="false" data-tab="api">API lab</button>
+        <button role="tab" aria-selected="false" data-tab="prompts">Prompt lab</button>
+        <button role="tab" aria-selected="false" data-tab="debrief">Debrief</button>
+      </nav>
+
+      <section id="panel-brief" class="tab-panel" role="tabpanel">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow" id="stage-kicker">Stage 1 · 8 minutes</span>
+            <h1 id="stage-title">Inspect</h1>
+            <p id="stage-objective" class="lead">Map the request path and establish a clean baseline.</p>
+          </div>
+          <button id="checkpoint-button" class="button primary" disabled>Run checkpoint</button>
+        </div>
+        <div class="brief-grid">
+          <section>
+            <h2>Requirements</h2>
+            <div id="requirements" class="requirement-list"></div>
+          </section>
+          <section class="command-panel">
+            <h2>Starting commands</h2>
+            <button class="command-copy" data-copy="dotnet test"><code>dotnet test</code><span>Copy</span></button>
+            <button class="command-copy" data-copy="dotnet run --project src/Practice.Api"><code>dotnet run --project src/Practice.Api</code><span>Copy</span></button>
+            <button class="command-copy" data-copy="git diff --stat"><code>git diff --stat</code><span>Copy</span></button>
+          </section>
+        </div>
+        <section class="checkpoint-output" aria-live="polite">
+          <div class="output-heading"><h2>Checkpoint evidence</h2><span id="checkpoint-provenance">Actual in-process probe</span></div>
+          <pre id="checkpoint-output">Start the simulation, complete the requirements, then run the stage checkpoint.</pre>
+        </section>
+      </section>
+
+      <section id="panel-api" class="tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <div><span class="eyebrow">Real HTTP request</span><h1>Quote API lab</h1><p class="lead">Send a request through the running ASP.NET pipeline. No mocked responses.</p></div>
+          <button id="send-request" class="button primary">Send request</button>
+        </div>
+        <div class="api-grid">
+          <div>
+            <label for="request-body">POST /api/v1/quotes</label>
+            <textarea id="request-body" class="code-editor" spellcheck="false" wrap="off">{
+  "lines": [
+    { "sku": "BOOK", "quantity": 2, "unitPrice": 20 }
+  ],
+  "shipping": 10,
+  "promotionCode": "SAVE10"
+}</textarea>
+          </div>
+          <div>
+            <div class="response-meta"><span>Response</span><span id="response-status">Not sent</span></div>
+            <pre id="response-body" class="response-body">The real response body will appear here.</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-prompts" class="tab-panel" role="tabpanel" hidden>
+        <div class="section-heading"><div><span class="eyebrow">Candidate-controlled AI</span><h1>Prompt lab</h1><p class="lead">Compose bounded prompts that preserve ownership and make verification explicit.</p></div><button id="copy-prompt" class="button primary">Copy prompt</button></div>
+        <div class="prompt-layout">
+          <div id="prompt-templates" class="template-list" aria-label="Prompt templates"></div>
+          <div>
+            <label for="prompt-editor">Editable prompt</label>
+            <textarea id="prompt-editor" class="prompt-editor">Inspect the relevant code path for the current requirement. Explain the files involved, identify assumptions, and propose a minimal plan. Do not edit code yet.</textarea>
+            <div class="prompt-guardrails">
+              <strong>Before sending</strong>
+              <ul><li>Name the exact scope.</li><li>State what must not change.</li><li>Ask for tests and risks.</li><li>Review every generated line.</li></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-debrief" class="tab-panel" role="tabpanel" hidden>
+        <div class="section-heading"><div><span class="eyebrow">Evidence-led reflection</span><h1>Run debrief</h1><p class="lead">Score the process, not just whether the final code happened to work.</p></div><button id="export-button" class="button">Export summary</button></div>
+        <div id="run-facts" class="run-facts"></div>
+        <form id="rubric-form" class="rubric-grid"></form>
+      </section>
+    </main>
+
+    <aside class="evidence-pane" aria-label="Notes and activity">
+      <section>
+        <div class="pane-heading"><h2>Interview notes</h2><span>Local only</span></div>
+        <textarea id="notes" placeholder="Clarifications, assumptions, trade-offs…"></textarea>
+      </section>
+      <section class="activity-section">
+        <div class="pane-heading"><h2>Activity</h2><button id="clear-activity" class="text-button">Clear</button></div>
+        <ol id="activity-log" class="activity-log"></ol>
+      </section>
+      <section class="next-stage-panel">
+        <span class="eyebrow">Stage gate</span>
+        <p id="stage-gate-copy">Complete every requirement to reveal the next stage.</p>
+        <button id="reveal-button" class="button primary full" disabled>Reveal next stage</button>
+      </section>
+    </aside>
+  </div>
+
+  <dialog id="start-dialog">
+    <form method="dialog" class="dialog-card">
+      <span class="eyebrow">60-minute simulation</span>
+      <h2>Ready to enter the cockpit?</h2>
+      <p>The timer persists across refreshes. Stages unlock only after their requirements are confirmed. Checkpoints run deterministic probes against the real C# domain.</p>
+      <div class="readiness-list">
+        <div><span id="dialog-api-indicator" class="dot"></span><span>Practice API connected</span></div>
+        <div><span class="dot ready"></span><span>Progress stored locally</span></div>
+        <div><span class="dot ready"></span><span>No AI credentials required</span></div>
+      </div>
+      <div class="dialog-actions"><button value="cancel" class="button">Cancel</button><button id="confirm-start" value="default" class="button primary">Start timer</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

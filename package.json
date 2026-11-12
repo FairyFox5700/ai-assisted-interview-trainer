@@ -1,0 +1,9 @@
+{
+  "name": "ai-interview-trainer-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test web-tests/*.test.js",
+    "check": "node --check src/Practice.Api/wwwroot/app.js && node --check src/Practice.Api/wwwroot/state.js"
+  }
+}
